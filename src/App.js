@@ -7,7 +7,6 @@ class App{
 
 
     getOccupation(){
-        //https://data.stad.gent/api/explore/v2.1/catalog/datasets/bezetting-parkeergarages-real-time/records?limit=20
 
         let url = "https://data.stad.gent/api/explore/v2.1/catalog/datasets/bezetting-parkeergarages-real-time/records?limit=20";
 
@@ -22,10 +21,9 @@ class App{
         }
 
     showOccupation(data){
-        //count the total number of occupied parking spots
         let totalOccupied = 0;
         for(let i = 0; i < data.results.length; i++){
-            totalOccupied += data.results[i].availablecapacity;
+            totalOccupied += data.results[i].occupation;
         }
         console.log(totalOccupied);
         this.occupationNumber.innerHTML = totalOccupied;
