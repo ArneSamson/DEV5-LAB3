@@ -29,12 +29,14 @@
     background-image: url(https://www.blue-bike.be/wp-content/uploads/2023/06/Blue-bike-deelfietsen-8-e1690273879166.png);
     background-repeat: no-repeat;
     background-position:center;
-background-size: calc(2 * 336px);
+    background-size: calc(2 * 336px);
     filter: brightness(40%) blur(2px);
     opacity: 0.7;
 }
 #logo{
     width: calc(2 * 336px);
+    position: relative;
+    z-index: 1;
 }
 
 h1, p {
