@@ -9,6 +9,7 @@ class App{
         this.occupationNumber = document.querySelector("#occupation");
         this.bikeStallDistance = document.querySelector("#distance");
         this.bikeStallName = document.querySelector("#bikeStallName");
+        this.bikeStallAvailable = document.querySelector("#availability");
         this.getBikeStalls();
         this.bikeStalls = [];
         this.closestBikeStall;
@@ -48,6 +49,14 @@ class App{
             });
     }
 
+    showBikeStall(name, distance, bikesAvailable){
+        distance = Math.round(distance * 1000);
+
+        this.bikeStallDistance.innerHTML = distance;
+        this.bikeStallName.innerHTML = name;
+        this.bikeStallAvailable.innerHTML = bikesAvailable;
+    }
+
     gotLocation(result) {
         this.myLat = result.coords.latitude;
         this.myLng = result.coords.longitude;
@@ -68,14 +77,15 @@ class App{
                 stall.latitude,
                 stall.longitude
             );
-            return { name: stall.name, distance };
+            return { name: stall.name, bikesAvailable: stall.bikes_available, distance };
         });
 
         this.closestBikeStall = distances.reduce((prev, curr) =>
             prev.distance < curr.distance ? prev : curr
         );
 
-        console.log(`Closest bike stall: ${this.closestBikeStall.name}, Distance: ${this.closestBikeStall.distance} km`);
+        this.showBikeStall(this.closestBikeStall.name, this.closestBikeStall.distance, this.closestBikeStall.bikesAvailable);
+        console.log(`Closest bike stall: ${this.closestBikeStall.name}, Distance: ${this.closestBikeStall.distance} km and ${this.closestBikeStall.bikesAvailable} bikes available`);
     }
 
     getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
