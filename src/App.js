@@ -3,16 +3,14 @@ class App{
         console.log("App initialized");
         this.getLocation();
         this.getOccupation();
+        // this.getNearestBikeStall();
         this.myLat;
         this.myLng;
         this.occupationNumber = document.querySelector("#occupation");
-        this.cities = [
-            {name: "Gent", lat: 51.05, lng: 3.71667},
-            {name: "Antwerpen", lat: 51.21667, lng: 4.41667},
-            {name: "Brussel", lat: 50.83333, lng: 4.33333},
-            {name: "Brugge", lat: 51.20892, lng: 3.22424},
-            {name: "Hasselt", lat: 50.93106, lng: 5.33751}
-        ];
+        this.bikeStallDistance = document.querySelector("#distance");
+        this.bikeStallName = document.querySelector("#bikeStallName");
+        this.getBikeStalls();
+        this.bikeStalls;
         this.closestCity;
     }
 
@@ -23,6 +21,18 @@ class App{
             );
     }
 
+    getBikeStalls(){
+        let url1 = "https://data.stad.gent/api/explore/v2.1/catalog/datasets/blue-bike-deelfietsen-gent-dampoort/records?limit=20";
+
+        fetch(url1)
+            .then(response => {
+                return response.json();
+            })
+            .then(data => {
+                console.log(data);
+            })
+    }
+
     gotLocation(result) {
         this.myLat = result.coords.latitude;
         this.myLng = result.coords.longitude;
@@ -30,7 +40,7 @@ class App{
     }
 
     calculateDistances() {
-        const distances = this.cities.map(city => {
+        const distances = this.bikeStalls.map(city => {
             const distance = this.getDistanceFromLatLonInKm(
                 this.myLat,
                 this.myLng,
@@ -74,10 +84,10 @@ class App{
                 return response.json();
             })
             .then(data => {
-                // console.log(data);
+                console.log(data);
                 this.showOccupation(data);
             })
-        }
+    }
 
     showOccupation(data){
         let totalOccupied = 0;
@@ -86,12 +96,12 @@ class App{
         }
         // console.log(totalOccupied);
         this.occupationNumber.innerHTML = totalOccupied;
-        }
+    }
 
-        errorLocation(error) {
-            console.log(error);
-        }
-        
+    errorLocation(error) {
+        console.log(error);
+    }
+
 }
 
 let app = new App();
