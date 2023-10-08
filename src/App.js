@@ -10,8 +10,8 @@ class App{
         this.bikeStallDistance = document.querySelector("#distance");
         this.bikeStallName = document.querySelector("#bikeStallName");
         this.getBikeStalls();
-        this.bikeStalls;
-        this.closestCity;
+        this.bikeStalls = [];
+        this.closestBikeStall;
     }
 
     getLocation() {
@@ -23,14 +23,29 @@ class App{
 
     getBikeStalls(){
         let url1 = "https://data.stad.gent/api/explore/v2.1/catalog/datasets/blue-bike-deelfietsen-gent-dampoort/records?limit=20";
+        let url2 = "https://data.stad.gent/api/explore/v2.1/catalog/datasets/blue-bike-deelfietsen-gent-sint-pieters-m-hendrikaplein/records?limit=20";
+        let url3 = "https://data.stad.gent/api/explore/v2.1/catalog/datasets/blue-bike-deelfietsen-gent-sint-pieters-st-denijslaan/records?limit=20";
 
-        fetch(url1)
-            .then(response => {
-                return response.json();
+        const fetchPromises = [
+            fetch(url1).then(response => response.json()),
+            fetch(url2).then(response => response.json()),
+            fetch(url3).then(response => response.json())
+        ];
+    
+        // Use Promise.all to fetch data from all URLs concurrently
+        Promise.all(fetchPromises)
+            .then(dataArray => {
+                this.bikeStalls = dataArray.reduce((accumulator, data) => {
+                    return accumulator.concat(data.results);
+                }, []);
+    
+                console.log(this.bikeStalls);
+    
+                this.calculateDistances();
             })
-            .then(data => {
-                console.log(data);
-            })
+            .catch(error => {
+                console.error("Error fetching bike stalls data:", error);
+            });
     }
 
     gotLocation(result) {
@@ -40,21 +55,27 @@ class App{
     }
 
     calculateDistances() {
-        const distances = this.bikeStalls.map(city => {
+
+        if (this.bikeStalls.length === 0) {
+            console.log("No bike stall data available yet.");
+            return;
+        }
+
+        const distances = this.bikeStalls.map(stall => {
             const distance = this.getDistanceFromLatLonInKm(
                 this.myLat,
                 this.myLng,
-                city.lat,
-                city.lng
+                stall.latitude,
+                stall.longitude
             );
-            return { name: city.name, distance };
+            return { name: stall.name, distance };
         });
 
-        this.closestCity = distances.reduce((prev, curr) =>
+        this.closestBikeStall = distances.reduce((prev, curr) =>
             prev.distance < curr.distance ? prev : curr
         );
 
-        console.log(`Closest city: ${this.closestCity.name}, Distance: ${this.closestCity.distance} km`);
+        console.log(`Closest bike stall: ${this.closestBikeStall.name}, Distance: ${this.closestBikeStall.distance} km`);
     }
 
     getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
@@ -84,7 +105,7 @@ class App{
                 return response.json();
             })
             .then(data => {
-                console.log(data);
+                // console.log(data);
                 this.showOccupation(data);
             })
     }
