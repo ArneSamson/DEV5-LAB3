@@ -1,18 +1,17 @@
 class App{
     constructor(){
-        console.log("App initialized");
+        // console.log("App initialized");
         this.getLocation();
-        this.getOccupation();
-        // this.getNearestBikeStall();
         this.myLat;
         this.myLng;
         this.occupationNumber = document.querySelector("#occupation");
         this.bikeStallDistance = document.querySelector("#distance");
         this.bikeStallName = document.querySelector("#bikeStallName");
         this.bikeStallAvailable = document.querySelector("#availability");
-        this.getBikeStalls();
         this.bikeStalls = [];
+        this.occupationCount = 0;
         this.closestBikeStall;
+        this.fetchDataFromLocal();
     }
 
     getLocation() {
@@ -41,7 +40,7 @@ class App{
                 }, []);
     
                 console.log(this.bikeStalls);
-    
+                this.storeDataInLocalStorage(this.bikeStalls);
                 this.calculateDistances();
             })
             .catch(error => {
@@ -64,7 +63,6 @@ class App{
     }
 
     calculateDistances() {
-
         if (this.bikeStalls.length === 0) {
             console.log("No bike stall data available yet.");
             return;
@@ -85,7 +83,7 @@ class App{
         );
 
         this.showBikeStall(this.closestBikeStall.name, this.closestBikeStall.distance, this.closestBikeStall.bikesAvailable);
-        console.log(`Closest bike stall: ${this.closestBikeStall.name}, Distance: ${this.closestBikeStall.distance} km and ${this.closestBikeStall.bikesAvailable} bikes available`);
+        // console.log(`Closest bike stall: ${this.closestBikeStall.name}, Distance: ${this.closestBikeStall.distance} km and ${this.closestBikeStall.bikesAvailable} bikes available`);
     }
 
     getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
@@ -107,7 +105,6 @@ class App{
     }
 
     getOccupation(){
-
         let url = "https://data.stad.gent/api/explore/v2.1/catalog/datasets/bezetting-parkeergarages-real-time/records?limit=20";
 
         fetch(url)
@@ -115,18 +112,48 @@ class App{
                 return response.json();
             })
             .then(data => {
-                // console.log(data);
-                this.showOccupation(data);
+                this.occupationCount = this.calculateoccupation(data);
+                this.storeDataInLocalStorage(this.bikeStalls, this.occupationCount);
+                this.showOccupation(this.occupationCount);
             })
     }
 
-    showOccupation(data){
+    calculateoccupation(data){
         let totalOccupied = 0;
         for(let i = 0; i < data.results.length; i++){
             totalOccupied += data.results[i].occupation;
         }
-        // console.log(totalOccupied);
+        return totalOccupied;
+    }
+
+    showOccupation(totalOccupied){
         this.occupationNumber.innerHTML = totalOccupied;
+    }
+
+    fetchDataFromLocal(){
+        const storedData = localStorage.getItem("bikeStallsData");
+        if (storedData) {
+            const { timestamp, data, occupationNumber } = JSON.parse(storedData);
+            const now = new Date().getTime();
+            if (now - timestamp < 60000) {
+                this.bikeStalls = data;
+                this.occupationNumber.innerHTML = occupationNumber;
+                this.calculateDistances();
+                console.log("Data loaded from local storage");
+                console.log(data);
+                return;
+            }
+        }
+
+        this.getBikeStalls();
+        this.getOccupation();
+        console.log("Data loaded from API");
+    }
+
+    storeDataInLocalStorage(data, occupationNumber) {
+        const timestamp = new Date().getTime();
+        const storedData = JSON.stringify({ timestamp, data, occupationNumber });
+        localStorage.setItem("bikeStallsData", storedData);
     }
 
     errorLocation(error) {
